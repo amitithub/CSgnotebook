@@ -689,6 +689,17 @@
             document.getElementById('home-view').classList.remove('hidden');
             document.getElementById('header-title').textContent = state.portalTitle;
             renderHomeDashboard();
+            
+            // Allow DOM to update then scroll to anchor if present
+            setTimeout(() => {
+                const hash = window.location.hash;
+                if (hash && hash !== '#admin' && hash !== '#create') {
+                    const target = document.querySelector(hash);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }
+            }, 50);
         }
 
         function showCreateView() {
