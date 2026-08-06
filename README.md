@@ -9,7 +9,6 @@ A zero-backend, enterprise-grade Single Page Application (SPA) designed to serve
 ![No Backend Required](https://img.shields.io/badge/Backend-None_Single_File-success)
 ![Cloudflare](https://img.shields.io/badge/Deployed-Cloudflare_Workers-F38020?style=flat&logo=cloudflare&logoColor=white)
 
-**Salesforce Internal (GitPages):** [https://git.soma.salesforce.com/pages/anarsikar/Gemini_Notebook/](https://git.soma.salesforce.com/pages/anarsikar/Gemini_Notebook/)
 **Public GitHub Demo:** [https://amitithub.github.io/WebPortal/](https://amitithub.github.io/WebPortal/)
 
 ## 🌟 Project Highlights & Insights
