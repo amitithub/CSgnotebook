@@ -904,9 +904,9 @@
                     const payload = { state: state, media: {} };
                     for (const f of state.features) { const imgs = await getMedia(f.id); if (imgs.length) payload.media[f.id] = imgs; }
                     
-                    // REPLACE THIS URL with your deployed Cloudflare Worker URL
-                    const WORKER_URL = 'https://replace-with-your-worker-url.workers.dev'; 
-                    if (!WORKER_URL.includes('replace-with')) {
+                    // Deployed Cloudflare Worker URL
+                    const WORKER_URL = 'https://csgnotebook-api.namit-work88.workers.dev'; 
+                    if (WORKER_URL) {
                         const response = await fetch(WORKER_URL, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
@@ -914,8 +914,6 @@
                         });
                         if (!response.ok) throw new Error(await response.text());
                         showToast(`"${title}" published to GitHub!`);
-                    } else {
-                        showToast(`"${title}" saved locally (Worker URL not configured).`);
                     }
                 } catch(proxyErr) {
                     console.error('GitHub Proxy Error:', proxyErr);
