@@ -24,6 +24,11 @@ export default {
         return new Response("Invalid payload", { status: 400 });
       }
 
+      const EXPECTED_PASSWORD = env.UPLOAD_PASSWORD || "publish123"; // Default password if not set
+      if (payload.uploadPassword !== EXPECTED_PASSWORD) {
+        return new Response("Unauthorized: Invalid upload password", { status: 401 });
+      }
+
       // 3. Configuration (Provided via Cloudflare Secrets/Env)
       const GITHUB_TOKEN = env.GITHUB_PAT;
       const REPO_OWNER = env.REPO_OWNER || "amitithub";

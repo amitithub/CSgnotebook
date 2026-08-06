@@ -901,7 +901,17 @@
                 
                 // Proxy to Cloudflare Worker
                 try {
-                    const payload = { state: state, media: {} };
+                    const uploadPassword = prompt("To publish this publicly, enter the upload password:");
+                    if (!uploadPassword) {
+                        showToast(`"${title}" saved locally. (Upload cancelled)`);
+                        document.getElementById('featureCreatorForm').reset();
+                        tempImages = [];
+                        renderImagePreviews();
+                        window.location.hash = '';
+                        return;
+                    }
+
+                    const payload = { state: state, media: {}, uploadPassword: uploadPassword };
                     for (const f of state.features) { const imgs = await getMedia(f.id); if (imgs.length) payload.media[f.id] = imgs; }
                     
                     // Deployed Cloudflare Worker URL
