@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Notebook Use Case</title>
+    <meta name="description" content="Internal knowledge portal documenting Google NotebookLM use cases for Tableau Technical Support productivity.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%25' stop-color='%234285f4'/><stop offset='100%25' stop-color='%237c3aed'/></linearGradient></defs><rect fill='url(%23g)' width='32' height='32' rx='8'/><path d='M10 8h12a2 2 0 012 2v12a2 2 0 01-2 2H10a2 2 0 01-2-2V10a2 2 0 012-2z' fill='white' fill-opacity='0.9'/><path d='M12 13h8M12 16.5h8M12 20h5' stroke='%234285f4' stroke-width='1.5' stroke-linecap='round'/></svg>">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'slate-blue': { 50: '#f0f4ff', 100: '#dbe4ff', 200: '#bac8ff', 300: '#91a7ff', 400: '#748ffc', 500: '#5c7cfa', 600: '#4c6ef5', 700: '#4263eb', 800: '#3b5bdb', 900: '#364fc7', 950: '#1e3a8a' },
+                        'gemini-blue': '#4285f4', 'gemini-red': '#ea4335', 'gemini-yellow': '#fbbc04', 'gemini-green': '#34a853',
+                    },
+                    fontFamily: { sans: ['Outfit', 'Inter', 'system-ui', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+                    boxShadow: { 'card': '0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03)', 'card-dark': '0 4px 6px -1px rgba(0,0,0,0.4), 0 2px 4px -1px rgba(0,0,0,0.3)' }
+                }
+            }
+        }
+    </script>
+    <style>
+        html { scroll-behavior: smooth; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+        @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast-animate { animation: slideInRight 0.3s ease-out forwards; }
+        .preserve-formatting { white-space: pre-wrap; font-family: inherit; }
+        
+        /* 3D Effects */
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .shadow-3d { box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3), 0 10px 20px -5px rgba(0,0,0,0.2), 0 0 40px inset rgba(255,255,255,0.1); }
+        .card-3d:hover {
+            transform: translateY(-10px) rotateX(2deg) rotateY(-2deg) scale(1.02);
+            box-shadow: -15px 15px 30px rgba(0,0,0,0.15), 0 0 20px inset rgba(255,255,255,0.5);
+            z-index: 10;
+        }
+        .dark .card-3d:hover { box-shadow: -15px 15px 30px rgba(0,0,0,0.5), 0 0 20px inset rgba(255,255,255,0.05); }
+
+        .hero-gradient { background: linear-gradient(135deg, #2563eb 0%, #3b82f6 30%, #8b5cf6 70%, #d946ef 100%); }
+        .dark .hero-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 30%, #312e81 70%, #4c1d95 100%); }
+
+        .glass-card { background: rgba(255,255,255,0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.3); }
+        .dark .glass-card { background: rgba(30,41,59,0.7); backdrop-filter: blur(12px); border: 1px solid rgba(71,85,105,0.3); }
+
+        .accordion-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out, padding 0.3s ease-out; padding-top: 0; padding-bottom: 0; }
+        .accordion-body.expanded { max-height: 2000px; transition: max-height 0.5s ease-in, padding 0.3s ease-in; }
+
+        .usecase-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
+        .usecase-card:hover { transform: translateY(-4px); }
+
+        .search-glow:focus { box-shadow: 0 0 0 3px rgba(66,133,244,0.3); }
+
+        .img-overlay { opacity: 0; transition: opacity 0.2s ease; }
+        .img-thumb:hover .img-overlay { opacity: 1; }
+
+        @keyframes countUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .stat-value { animation: countUp 0.5s ease-out forwards; }
+
+        .admin-tab-btn { transition: all 0.2s ease; }
+        .admin-tab-btn.active { border-bottom: 2px solid #4285f4; color: #4285f4; }
+        .dark .admin-tab-btn.active { color: #748ffc; border-color: #748ffc; }
+
+        .cropper-container { max-height: 60vh; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-200 font-sans antialiased min-h-screen flex flex-col">
+
+    <!-- ========== HEADER ========== -->
+    <header class="sticky top-0 z-40 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/80 h-16">
+        <div class="mx-auto flex h-full max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+            <a id="home-link" href="index.html" class="flex items-center gap-3 group">
+                <div class="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-gemini-blue to-slate-blue-600 text-white shadow-md group-hover:shadow-lg transition-shadow">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    <div class="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-gemini-yellow border-2 border-white dark:border-slate-900"></div>
+                </div>
+                <h1 id="header-title" class="text-lg font-bold leading-tight text-slate-900 dark:text-white hidden sm:block">Gemini Notebook</h1>
+            </a>
+            
+            <nav class="hidden md:flex items-center gap-6">
+                <div class="relative group">
+                    <button class="flex items-center gap-1 text-sm font-semibold text-slate-600 hover:text-slate-blue-600 dark:text-slate-300 dark:hover:text-slate-blue-400 transition-colors transform hover:-translate-y-0.5">
+                        Categories
+                    </button>
+                    <div id="header-categories-dropdown" class="absolute top-full -right-4 mt-1 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 flex flex-col py-2">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+                <a href="#case-studies-anchor" class="text-sm font-semibold text-slate-600 hover:text-slate-blue-600 dark:text-slate-300 dark:hover:text-slate-blue-400 transition-colors transform hover:-translate-y-0.5">Use Cases</a>
+                <a href="#usecases-grid-section" class="text-sm font-semibold text-slate-600 hover:text-slate-blue-600 dark:text-slate-300 dark:hover:text-slate-blue-400 transition-colors transform hover:-translate-y-0.5">Published Usecases</a>
+                <a href="#prompt-samples-section" class="text-sm font-semibold text-slate-600 hover:text-slate-blue-600 dark:text-slate-300 dark:hover:text-slate-blue-400 transition-colors transform hover:-translate-y-0.5">Prompts</a>
+            </nav>
+
+            <div class="flex items-center gap-3">
+                <a id="nav-admin-link" href="#admin" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    Admin
+                </a>
+                <button id="themeToggle" class="relative flex h-8 w-14 items-center rounded-full bg-slate-200 p-1 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-slate-blue-500 focus:ring-offset-2 dark:bg-slate-700 dark:focus:ring-offset-slate-900" role="switch" aria-checked="false" aria-label="Toggle dark mode">
+                    <span id="toggleThumb" class="flex h-6 w-6 transform items-center justify-center rounded-full bg-white shadow-md transition-transform duration-300 translate-x-0">
+                        <svg id="sunIcon" class="h-4 w-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <svg id="moonIcon" class="hidden h-4 w-4 text-slate-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    </span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ========== VIEW: WELCOME (First Visit) ========== -->
+    <div id="welcome-view" class="hidden flex-1 flex items-center justify-center px-4 py-16">
+        <div class="w-full max-w-lg p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 text-center">
+            <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-gemini-blue to-slate-blue-600 text-white mb-6 shadow-lg">
+                <svg class="h-10 w-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            </div>
+            <h2 class="text-2xl font-bold text-slate-900 dark:text-white mb-3">Welcome to the Knowledge Portal</h2>
+            <p class="text-slate-500 dark:text-slate-400 mb-8 text-sm leading-relaxed">This portal has no content yet. Import a portal backup to load existing usecases and case studies, or start fresh.</p>
+            <div class="space-y-3">
+                <label class="w-full flex items-center justify-center gap-2 px-6 py-3.5 bg-gemini-blue text-white rounded-xl font-semibold cursor-pointer hover:bg-blue-600 transition-colors shadow-md hover:shadow-lg">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    Import Portal Backup (.json)
+                    <input type="file" accept=".json" class="hidden" onchange="importData(event, true)">
+                </label>
+                <div class="relative flex items-center gap-3 py-2"><div class="flex-1 border-t border-slate-200 dark:border-slate-700"></div><span class="text-xs text-slate-400 uppercase tracking-wider">or</span><div class="flex-1 border-t border-slate-200 dark:border-slate-700"></div></div>
+                <button onclick="skipWelcome()" class="w-full px-6 py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl font-semibold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                    Start Fresh with Default Content
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== VIEW: HOME DASHBOARD ========== -->
+    <main id="home-view" class="hidden flex-1">
+        <!-- Hero Section -->
+        <section class="hero-gradient text-white py-6 sm:py-8 px-4 relative overflow-hidden" style="perspective: 1000px;">
+            <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsIDI1NSwgMjU1LCAwLjIpIi8+PC9zdmc+')] opacity-20 transform translate-z-[-100px]"></div>
+            <div class="mx-auto max-w-7xl text-center relative z-10 transform-style-3d">
+                <div class="flex items-center justify-center mb-2">
+                    <svg width="50" height="34" viewBox="0 0 70 46" xmlns="http://www.w3.org/2000/svg" class="filter drop-shadow-xl transform hover:scale-110 hover:-translate-y-1 hover:rotate-2 transition-all duration-500 cursor-pointer">
+                        <defs>
+                            <linearGradient id="gemHero1" x1="0%" y1="100%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#e0e7ff" />
+                                <stop offset="100%" stop-color="#60a5fa" />
+                            </linearGradient>
+                            <linearGradient id="gemHero2" x1="0%" y1="100%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#c7d2fe" />
+                                <stop offset="100%" stop-color="#3b82f6" />
+                            </linearGradient>
+                            <linearGradient id="gemHero3" x1="0%" y1="100%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#a5b4fc" />
+                                <stop offset="100%" stop-color="#1d4ed8" />
+                            </linearGradient>
+                        </defs>
+                        <!-- Outer Arch -->
+                        <path d="M 6 40 A 29 29 0 0 1 64 40" fill="none" stroke="url(#gemHero1)" stroke-width="8" stroke-linecap="round" />
+                        <!-- Middle Arch -->
+                        <path d="M 18 40 A 17 17 0 0 1 52 40" fill="none" stroke="url(#gemHero2)" stroke-width="8" stroke-linecap="round" />
+                        <!-- Inner Arch -->
+                        <path d="M 30 40 A 5 5 0 0 1 40 40" fill="none" stroke="url(#gemHero3)" stroke-width="8" stroke-linecap="round" />
+                    </svg>
+                </div>
+                
+                <h2 id="hero-title" class="text-2xl sm:text-3xl lg:text-4xl font-extrabold mb-1.5 leading-tight tracking-tight drop-shadow-md transform hover:scale-[1.02] transition-transform">Gemini Notebook</h2>
+                <p id="hero-subtitle" class="max-w-3xl mx-auto text-sm sm:text-base text-white/90 mb-4 leading-relaxed font-medium">Strategically leverage Google NotebookLM's features to streamline complex enterprise troubleshooting, navigate system limitations, and boost daily productivity.</p>
+                
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-3 perspective-1000">
+                    <a href="#case-studies-anchor" class="px-6 py-2.5 text-sm bg-white text-slate-blue-700 rounded-lg font-bold hover:bg-slate-50 transition-all transform hover:-translate-y-1 hover:shadow-3d active:translate-y-0 active:shadow-inner">Explore Use Cases</a>
+                    <a href="#create" class="px-6 py-2.5 text-sm bg-white/10 text-white rounded-lg font-bold hover:bg-white/20 transition-all transform hover:-translate-y-1 hover:shadow-3d backdrop-blur-md border border-white/20 active:translate-y-0 active:shadow-inner">Submit New Usecase</a>
+                </div>
+            </div>
+        </section>
+
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 space-y-12">
+            <!-- About NotebookLM Overview -->
+            <section id="overview-section">
+                <div id="overview-content" class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-card dark:shadow-card-dark p-6 sm:p-8"></div>
+            </section>
+
+
+
+            <!-- Case Studies & Impact -->
+            <section id="case-studies-anchor">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-2xl font-extrabold text-slate-900 dark:text-white">Use Cases &amp; Impact</h3>
+                    <span id="cs-count-badge" class="text-xs font-bold text-slate-500 bg-slate-200 dark:bg-slate-700 px-2.5 py-1 rounded-full"></span>
+                </div>
+                <div id="case-studies-list" class="space-y-4"></div>
+            </section>
+
+            <!-- Stats Row -->
+            <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="glass-card rounded-2xl p-6 text-center shadow-card dark:shadow-card-dark">
+                    <div id="stat-total" class="text-3xl font-extrabold text-gemini-blue stat-value">0</div>
+                    <div class="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Published Usecases</div>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center shadow-card dark:shadow-card-dark">
+                    <div id="stat-sections" class="text-3xl font-extrabold text-purple-500 stat-value">0</div>
+                    <div class="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Case Study Sections</div>
+                </div>
+                <div class="glass-card rounded-2xl p-6 text-center shadow-card dark:shadow-card-dark">
+                    <div id="stat-recent" class="text-3xl font-extrabold text-gemini-green stat-value">0</div>
+                    <div class="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">Recently Updated</div>
+                </div>
+            </section>
+
+            <!-- Summary -->
+            <section id="summary-section">
+                <div id="summary-content" class="bg-gradient-to-r from-slate-50 to-blue-50 dark:from-slate-800 dark:to-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 sm:p-8"></div>
+            </section>
+
+            <!-- Search & Usecases Grid -->
+            <section id="usecases-grid-section">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                    <h3 class="text-2xl font-extrabold text-slate-900 dark:text-white">Published Usecases</h3>
+                    <div class="relative w-full sm:w-80">
+                        <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <input id="search-input" type="text" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-900 dark:text-slate-100 outline-none search-glow focus:border-gemini-blue transition-colors" placeholder="Search usecases by title or description...">
+                    </div>
+                </div>
+                <!-- <div id="category-tabs" class="flex overflow-x-auto gap-3 pb-4 mb-2 scrollbar-hide"></div> -->
+                <div id="usecases-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </section>
+
+            <!-- Prompt Samples -->
+            <section id="prompt-samples-section" class="hidden mt-16 pt-10 border-t border-slate-200 dark:border-slate-800">
+                <div class="flex items-center justify-between mb-8">
+                    <div>
+                        <h3 class="text-2xl font-extrabold text-slate-900 dark:text-white">Expert Prompts</h3>
+                        <p class="text-slate-500 dark:text-slate-400 mt-1">Ready-to-use prompt templates for Tableau Technical Support.</p>
+                    </div>
+                </div>
+                <div id="prompt-samples-list" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            </section>
+
+            <!-- Footer Actions -->
+            <section class="border-t border-slate-200 dark:border-slate-700 pt-6 flex flex-wrap items-center justify-center gap-3">
+                <button onclick="openSlackCanvas()" class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors border border-indigo-200 dark:border-indigo-800">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Slack Canvas
+                </button>
+            </section>
+        </div>
+    </main>
+
+    <!-- ========== VIEW: CREATE (Submission Form) ========== -->
+    <div id="create-view" class="hidden flex-1 mx-auto w-full max-w-3xl px-4 sm:px-6 lg:px-8 py-8">
+        <a id="back-home-create" href="index.html" class="inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-blue-600 mb-6 transition-colors">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Back to Dashboard
+        </a>
+        <form id="featureCreatorForm" class="rounded-2xl border border-slate-200 bg-white p-6 lg:p-8 dark:border-slate-700 dark:bg-slate-800 shadow-card dark:shadow-card-dark">
+            <h2 id="creator-heading" class="mb-6 flex items-center text-xl font-bold text-slate-900 dark:text-white">
+                <svg class="mr-3 h-6 w-6 text-gemini-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Submit New Usecase
+            </h2>
+            <div class="space-y-6">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Usecase Title</label>
+                    <input type="text" id="f-title" required class="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-slate-blue-500 focus:ring-1 focus:ring-slate-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 outline-none transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Category</label>
+                    <select id="f-category" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-slate-blue-500 focus:ring-1 focus:ring-slate-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 outline-none transition-colors">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Description</label>
+                    <textarea id="f-details" required rows="4" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-slate-blue-500 focus:ring-1 focus:ring-slate-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 outline-none transition-colors resize-y preserve-formatting"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Impact &amp; Application</label>
+                    <textarea id="f-usecase" required rows="4" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-slate-blue-500 focus:ring-1 focus:ring-slate-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 outline-none transition-colors resize-y preserve-formatting"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">Documentation Link</label>
+                    <input type="url" id="f-url" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-slate-blue-500 focus:ring-1 focus:ring-slate-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 outline-none transition-colors">
+                </div>
+                <div class="border-t border-slate-100 dark:border-slate-700 pt-6">
+                    <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3">Media Assets</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <input type="file" id="f-images" accept="image/*" multiple class="hidden">
+                            <button type="button" id="upload-trigger" class="w-full flex flex-col items-center justify-center h-40 border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-lg text-slate-500 hover:text-slate-blue-500 hover:border-slate-blue-400 dark:hover:text-slate-blue-400 transition-colors">
+                                <svg class="h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                <span class="text-sm font-medium">Upload Screenshots</span>
+                            </button>
+                            <div id="imagePreviews" class="flex flex-wrap gap-2 mt-3"></div>
+                        </div>
+                        <div class="relative">
+                            <svg class="absolute left-3 top-3.5 h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                            <input type="url" id="f-video" class="w-full h-40 rounded-lg border border-slate-300 bg-white py-3 pl-12 pr-4 text-sm text-slate-900 focus:border-slate-blue-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 outline-none transition-colors resize-y" placeholder="Paste Loom/YouTube Demo Link">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-8 flex justify-end">
+                <button type="submit" class="rounded-xl bg-slate-blue-600 px-8 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-blue-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-slate-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800">Submit Usecase</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- ========== VIEW: SINGLE FEATURE SPLIT ========== -->
+    <div id="feature-view" class="hidden flex-1 flex flex-col md:flex-row overflow-hidden" style="height: calc(100vh - 4rem);">
+        <div id="feature-text-container" class="w-full md:w-1/2 overflow-y-auto p-8 lg:p-12 border-b md:border-b-0 md:border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900"></div>
+        <div id="feature-media-container" class="hidden md:flex w-full md:w-1/2 flex-col items-center justify-start p-6 overflow-y-auto bg-slate-50 dark:bg-slate-950 border-l border-slate-200 dark:border-slate-800"></div>
+    </div>
+
+    <!-- ========== VIEW: ADMIN PANEL ========== -->
+    <div id="admin-view" class="hidden flex-1 mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Admin Lock -->
+        <div id="admin-lock" class="flex items-center justify-center min-h-[60vh]">
+            <div class="w-full max-w-sm p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 text-center">
+                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 mb-6">
+                    <svg class="h-8 w-8 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </div>
+                <h2 class="text-xl font-bold text-slate-900 dark:text-white mb-6">Admin Access</h2>
+                <form id="login-form" class="space-y-4">
+                    <input type="password" id="admin-pass-input" required placeholder="Enter Password" class="w-full text-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 tracking-widest focus:border-slate-blue-500 focus:ring-1 focus:ring-slate-blue-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 outline-none">
+                    <button type="submit" class="w-full rounded-lg bg-slate-900 text-white py-2.5 font-semibold hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 transition-colors">Unlock Dashboard</button>
+                </form>
+                <p id="login-error" class="hidden text-sm text-red-500 mt-4">Incorrect password.</p>
+                <a id="back-home-link-admin" href="index.html" class="block mt-6 text-sm text-slate-blue-600 hover:underline font-medium">← Back to Portal</a>
+            </div>
+        </div>
+
+        <!-- Admin Dashboard -->
+        <div id="admin-dashboard" class="hidden space-y-6">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-white">Portal Management</h2>
+                <a id="back-home-link-admin2" href="index.html" class="text-sm font-medium text-slate-blue-600 hover:text-slate-blue-700 flex items-center gap-1">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    Back to Portal
+                </a>
+            </div>
+
+            <!-- Admin Tabs -->
+            <div class="border-b border-slate-200 dark:border-slate-700 flex gap-1 overflow-x-auto">
+                <button onclick="switchAdminTab('settings')" class="admin-tab-btn active px-4 py-3 text-sm font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap" data-tab="settings">Settings</button>
+                <button onclick="switchAdminTab('categories')" class="admin-tab-btn px-4 py-3 text-sm font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap" data-tab="categories">Categories</button>
+                <button onclick="switchAdminTab('usecases')" class="admin-tab-btn px-4 py-3 text-sm font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap" data-tab="usecases">Usecases Management</button>
+                <button onclick="switchAdminTab('casestudy')" class="admin-tab-btn px-4 py-3 text-sm font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap" data-tab="casestudy">Landing Page Content</button>
+                <button onclick="switchAdminTab('prompts')" class="admin-tab-btn px-4 py-3 text-sm font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap" data-tab="prompts">Prompts</button>
+                <button onclick="switchAdminTab('exportimport')" class="admin-tab-btn px-4 py-3 text-sm font-semibold text-slate-500 dark:text-slate-400 whitespace-nowrap" data-tab="exportimport">Export / Import</button>
+            </div>
+
+            <!-- Tab: Settings -->
+            <div id="admin-tab-settings" class="admin-tab-content">
+                <div class="max-w-md p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-card dark:shadow-card-dark">
+                    <h3 class="font-bold text-lg mb-4 text-slate-900 dark:text-white">Settings</h3>
+                    <form id="settings-form" class="space-y-4">
+                        <div><label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Portal Title</label><input type="text" id="set-title" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-900 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 outline-none focus:border-slate-blue-500"></div>
+                        <div><label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Admin Email</label><input type="email" id="set-email" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-900 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 outline-none focus:border-slate-blue-500"></div>
+                        <div><label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">New Password</label><input type="password" id="set-pass" placeholder="Leave blank to keep current" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-900 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 outline-none focus:border-slate-blue-500"></div>
+                        <button type="submit" class="w-full bg-gemini-green text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition-opacity">Save Settings</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tab: Categories -->
+            <div id="admin-tab-categories" class="admin-tab-content hidden">
+                <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-card dark:shadow-card-dark p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="font-bold text-lg text-slate-900 dark:text-white">Manage Categories</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">Add or edit categories for usecases.</p>
+                        </div>
+                        <button onclick="handleAddCategory()" class="px-4 py-2 bg-slate-blue-600 hover:bg-slate-blue-700 text-white text-sm font-bold rounded-lg transition-colors shadow-sm">+ Add Category</button>
+                    </div>
+                    <div id="admin-categories-list" class="space-y-4 max-h-[600px] overflow-y-auto pr-2"></div>
+                </div>
+            </div>
+
+            <!-- Tab: Usecases Management -->
+            <div id="admin-tab-usecases" class="admin-tab-content hidden">
+                <div class="p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-card dark:shadow-card-dark">
+                    <h3 class="font-bold text-lg mb-4 text-slate-900 dark:text-white">Usecases Management</h3>
+                    <div id="admin-features-list" class="space-y-4 max-h-[600px] overflow-y-auto pr-2"></div>
+                </div>
+            </div>
+
+            <!-- Tab: Landing Page Content -->
+            <div id="admin-tab-casestudy" class="admin-tab-content hidden space-y-6">
+                <!-- Overview Editor -->
+                <div class="p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-card dark:shadow-card-dark">
+                    <h3 class="font-bold text-lg mb-4 text-slate-900 dark:text-white">Landing Overview</h3>
+                    <div class="space-y-3">
+                        <div><label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Title</label><input type="text" id="edit-overview-title" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 outline-none focus:border-slate-blue-500"></div>
+                        <div><label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Main Content</label><textarea id="edit-overview-content" rows="3" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 outline-none focus:border-slate-blue-500 resize-y"></textarea></div>
+                        <div><label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Support Context</label><textarea id="edit-overview-context" rows="2" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 outline-none focus:border-slate-blue-500 resize-y"></textarea></div>
+                        <button onclick="saveLandingOverview()" class="px-4 py-2 bg-gemini-green text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity">Save Overview</button>
+                    </div>
+                </div>
+                <!-- Summary Editor -->
+                <div class="p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-card dark:shadow-card-dark">
+                    <h3 class="font-bold text-lg mb-4 text-slate-900 dark:text-white">Landing Summary</h3>
+                    <textarea id="edit-landing-summary" rows="3" class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 outline-none focus:border-slate-blue-500 resize-y"></textarea>
+                    <button onclick="saveLandingSummary()" class="mt-3 px-4 py-2 bg-gemini-green text-white text-sm font-semibold rounded-lg hover:opacity-90 transition-opacity">Save Summary</button>
+                </div>
+                <!-- Case Study Sections CRUD -->
+                <div class="p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-card dark:shadow-card-dark">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-bold text-lg text-slate-900 dark:text-white">Case Study Sections</h3>
+                        <button onclick="addCaseStudySection()" class="px-3 py-1.5 bg-gemini-blue text-white text-xs font-bold rounded-lg hover:bg-blue-600 transition-colors">+ Add Section</button>
+                    </div>
+                    <div id="admin-cs-list" class="space-y-4 max-h-[600px] overflow-y-auto pr-2"></div>
+                </div>
+            </div>
+
+            <!-- Tab: Prompt Samples -->
+            <div id="admin-tab-prompts" class="admin-tab-content hidden">
+                <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-card dark:shadow-card-dark p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="font-bold text-lg text-slate-900 dark:text-white">Manage Prompts</h3>
+                            <p class="text-sm text-slate-500 dark:text-slate-400">Add or edit prompts displayed on the landing page.</p>
+                        </div>
+                        <button onclick="handleAddPrompt()" class="px-4 py-2 bg-slate-blue-600 hover:bg-slate-blue-700 text-white text-sm font-bold rounded-lg transition-colors shadow-sm">+ Add Prompt</button>
+                    </div>
+                    <div id="admin-prompts-list" class="space-y-4 max-h-[600px] overflow-y-auto pr-2"></div>
+                </div>
+            </div>
+
+            <!-- Tab: Export/Import -->
+            <div id="admin-tab-exportimport" class="admin-tab-content hidden">
+                <div class="max-w-md p-6 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-card dark:shadow-card-dark">
+                    <h3 class="font-bold text-lg mb-4 text-slate-900 dark:text-white">Data Portability</h3>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">Export your entire portal (usecases, case studies, images, settings) as a single JSON file. Share the HTML + JSON with others so they can import and see all content.</p>
+                    <div class="space-y-3">
+                        <button onclick="exportData()" class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Export Full Backup
+                        </button>
+                        <label class="w-full flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors cursor-pointer">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                            Import Backup (.json)
+                            <input type="file" accept=".json" class="hidden" onchange="importData(event)">
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MODAL: Feedback ========== -->
+    <dialog id="feedbackModal" class="w-full max-w-lg rounded-xl border border-slate-200 bg-white p-0 shadow-xl dark:border-slate-700 dark:bg-slate-800 backdrop:bg-black/60 backdrop:backdrop-blur-sm">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Provide Feedback</h3>
+                <button onclick="closeFeedbackModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <form id="feedback-form" class="space-y-5">
+                <div><label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Rating</label><div id="starRating" class="flex gap-1"><button type="button" onclick="setRating(1)" class="star-btn text-slate-300 hover:text-amber-500 dark:text-slate-600 dark:hover:text-amber-400 transition-colors"><svg class="h-7 w-7" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg></button><button type="button" onclick="setRating(2)" class="star-btn text-slate-300 hover:text-amber-500 dark:text-slate-600 dark:hover:text-amber-400 transition-colors"><svg class="h-7 w-7" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg></button><button type="button" onclick="setRating(3)" class="star-btn text-slate-300 hover:text-amber-500 dark:text-slate-600 dark:hover:text-amber-400 transition-colors"><svg class="h-7 w-7" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg></button><button type="button" onclick="setRating(4)" class="star-btn text-slate-300 hover:text-amber-500 dark:text-slate-600 dark:hover:text-amber-400 transition-colors"><svg class="h-7 w-7" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg></button><button type="button" onclick="setRating(5)" class="star-btn text-slate-300 hover:text-amber-500 dark:text-slate-600 dark:hover:text-amber-400 transition-colors"><svg class="h-7 w-7" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg></button></div></div>
+                <div><label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Type</label><div class="flex gap-4"><label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 cursor-pointer"><input type="radio" name="fbType" value="Suggestion" checked class="accent-slate-blue-600 w-4 h-4"> Suggestion</label><label class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 cursor-pointer"><input type="radio" name="fbType" value="Bug Report" class="accent-red-500 w-4 h-4"> Bug Report</label></div></div>
+                <div><label for="fbMessage" class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Message</label><textarea id="fbMessage" rows="3" required placeholder="Tell us more..." class="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-blue-500 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 outline-none transition-colors resize-y"></textarea></div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeFeedbackModal()" class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors">Cancel</button>
+                    <button type="submit" id="fb-submit-btn" class="rounded-lg bg-slate-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-blue-700 transition-colors">Submit</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <!-- ========== MODAL: Image Editor ========== -->
+    <dialog id="imageEditorModal" class="w-full max-w-3xl rounded-2xl border border-slate-200 bg-white p-0 shadow-2xl dark:border-slate-700 dark:bg-slate-800 backdrop:bg-black/70 backdrop:backdrop-blur-sm">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Edit Image</h3>
+                <button onclick="closeImageEditor()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <div class="bg-slate-100 dark:bg-slate-900 rounded-xl overflow-hidden mb-4" style="max-height:60vh;">
+                <img id="editor-image" src="" alt="Edit" style="max-width:100%; display:block;">
+            </div>
+            <div class="flex flex-wrap items-center justify-center gap-2 mb-4">
+                <button onclick="editorAction('rotateCW')" class="px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" title="Rotate Right">↻ Rotate</button>
+                <button onclick="editorAction('rotateCCW')" class="px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" title="Rotate Left">↺ Rotate</button>
+                <button onclick="editorAction('zoomIn')" class="px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" title="Zoom In">🔍+</button>
+                <button onclick="editorAction('zoomOut')" class="px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" title="Zoom Out">🔍ΓêÆ</button>
+                <button onclick="editorAction('reset')" class="px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-700 text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors" title="Reset">Reset</button>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeImageEditor()" class="rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 transition-colors">Cancel</button>
+                <button onclick="applyImageEdit()" class="rounded-lg bg-gemini-blue px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-blue-600 transition-colors">Apply Changes</button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- ========== MODAL: Slack Canvas ========== -->
+    <dialog id="slackCanvasModal" class="w-full max-w-3xl rounded-2xl border border-slate-200 bg-white p-0 shadow-2xl dark:border-slate-700 dark:bg-slate-800 backdrop:bg-black/70 backdrop:backdrop-blur-sm">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <svg class="h-5 w-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Slack Canvas
+                </h3>
+                <button onclick="closeSlackCanvas()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Copy the formatted content below and paste it into a Slack canvas or message.</p>
+            <div class="bg-slate-50 dark:bg-slate-900 rounded-xl p-5 mb-4 max-h-[55vh] overflow-y-auto border border-slate-200 dark:border-slate-700">
+                <pre id="slack-canvas-content" class="whitespace-pre-wrap break-words text-sm font-mono text-slate-700 dark:text-slate-300 leading-relaxed"></pre>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button onclick="downloadSlackCanvas()" class="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 transition-colors">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Download .txt
+                </button>
+                <button onclick="copySlackCanvas()" class="flex items-center gap-2 rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-indigo-700 transition-colors">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                    Copy to Clipboard
+                </button>
+            </div>
+        </div>
+    </dialog>
+
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- ========== ALL APPLICATION JAVASCRIPT ========== -->
+    <script>
+        // ===== DB & STATE SETUP =====
+        const DB_NAME = 'NotebookPortalDB', DB_VERSION = 1, STORE_NAME = 'media';
+        function openDB() { return new Promise((resolve, reject) => { const r = indexedDB.open(DB_NAME, DB_VERSION); r.onupgradeneeded = e => e.target.result.createObjectStore(STORE_NAME); r.onsuccess = e => resolve(e.target.result); r.onerror = e => reject(e.target.error); }); }
+        async function saveMedia(id, img) { if(!img.length) return; const db = await openDB(); db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME).put(img, id); }
+        async function getMedia(id) { const db = await openDB(); return new Promise(r => { const req = db.transaction(STORE_NAME, 'readonly').objectStore(STORE_NAME).get(id); req.onsuccess = () => r(req.result || []); }); }
+        async function deleteMedia(id) { const db = await openDB(); db.transaction(STORE_NAME, 'readwrite').objectStore(STORE_NAME).delete(id); }
+
+        const DEFAULT_CASE_STUDIES = [
+            { id:'cs-1', order:1, title:'Log Investigation & Root Cause Analysis', challenge:'Synthesizing extensive user research, logs, and investigation findings. Instead of manually scrolling through thousands of lines of log files, ask NotebookLM to pinpoint specific error codes, identify the exact timestamp a process failed, or summarize the events.', solution:'Upload generated logs as a source for investigation and research.', impact:'Saves hours of manual investigation and enables faster insights, supporting more effective Root Cause Analysis (RCA) for issues.', pros:['Accurate source citations','Easy follow-up Q&A'], cons:['Limited to 500 sources','Sometimes misses nuances'], status:'active' },
+            { id:'cs-2', order:2, title:'Security & Data Compliance', challenge:'Security and data compliance concerns when working with customer data.', solution:'Complete Privacy & Offline Use — upload customer data locally.', impact:'Data stays secured and offline — upload customer data locally which does not expose over the internet.', pros:['Data is secured and offline'], cons:[], status:'active' },
+            { id:'cs-3', order:3, title:'Reducing AI Hallucinations', challenge:'AI tools hallucinating inaccurate information.', solution:'Hallucinates less compared to other AI tools.', impact:'We can rely on the data, which supports effective communication and enables us to share observations more clearly.', pros:['Choosing AI tools with lower hallucination rates ensures highly reliable outputs, minimizing the time spent verifying facts'], cons:[], status:'active' },
+            { id:'cs-4', order:4, title:'Reading Long Documentation', challenge:'Navigating and understanding lengthy documentation quickly.', solution:'Use of the Mind Map feature — a visual diagram that automatically summarizes uploaded sources, showing main topics and their related ideas as branching nodes.', impact:'Helps quickly see the "big picture," explore connections, and organize information for better understanding of topics.', pros:['Visual overview of complex topics','Quickly identifies connections between ideas','Easier to organize information for deeper understanding'], cons:['The generated mind map cannot be modified directly. You cannot reorganize nodes, rename branches, or manually add your own concepts.'], status:'active' },
+            { id:'cs-5', order:5, title:'Drilling Into Log Data', challenge:'File format challenge and file size limitation.', solution:'Data Table feature — lists out all available tasks in the uploaded logs.', impact:'Can drill down any job to the finest details. Examples: Refresh jobs, Subscriptions, Reap jobs, VizQL session details (e.g., begin-query, data connections, etc.)', pros:['Drill down to finest details','Lists all available tasks'], cons:[], status:'active' },
+            { id:'cs-6', order:6, title:'Audio Overviews & Learning', challenge:'Need for flexible learning formats for technical content.', solution:'Audio feature — builds audiobooks/podcasts based on input documents, enabling you to learn a specific topic through audio.', impact:'Can help build audiobooks/podcasts based on the uploaded documents, supporting learning on the go.', pros:['Can build audiobooks/podcasts based on input documents','Helps learn a specific topic through audio'], cons:[], status:'active' },
+            { id:'cs-7', order:7, title:'Cross-Case Knowledge Base', challenge:'Knowledge is siloed — every engineer reinvestigates similar issues from scratch.', solution:'Upload past resolved case notes, RCA docs, and KB articles into a shared notebook. Engineers can query "has this error occurred before?" instantly.', impact:'Reduces duplicate investigation effort, accelerates TTR for engineers.', pros:['Instant cross-case search','Reduces duplicate effort'], cons:['Requires consistent case note uploading'], status:'draft' }
+        ];
+
+        const DEFAULT_STATE = {
+            isDark: true,
+            password: 'admin123',
+            adminEmail: 'admin@yourcompany.com',
+            portalTitle: 'Gemini Notebook Use Case',
+            landingOverview: {
+                title: 'About Google NotebookLM',
+                content: 'NotebookLM is an AI-powered research and thinking assistant built on Gemini models. Operating as a closed Retrieval-Augmented Generation (RAG) system, it answers queries using only the trusted data you provide, eliminating AI hallucinations and broad internet guesswork.',
+                supportContext: 'For Tableau Technical Support, this means you can upload technical documentation, server logs, API guides, and troubleshooting manuals to create a secure, hyper-focused "knowledge hub."'
+            },
+            landingSummary: 'NotebookLM offers meaningful productivity gains for Technical Support workflows — from faster RCA investigations to secure handling of customer data and visual exploration of complex documentation. Its grounding in uploaded sources keeps responses reliable and reduces hallucination risks compared to general-purpose AI tools.',
+            caseStudySections: DEFAULT_CASE_STUDIES,
+            features: [],
+            promptSamples: [
+                { id: 'p1', title: 'Log Analysis & RCA', text: 'Act as a senior Tableau engineer. Analyze these server logs. Identify all fatal error codes, extract their exact timestamps, and summarize the sequence of events leading up to the crash.' },
+                { id: 'p2', title: 'Backgrounder Jobs Table', text: 'Create a data table listing all backgrounder jobs (e.g., Extract Refreshes, Subscriptions). Include the job ID, start time, end time, and status from the uploaded logs.' },
+                { id: 'p3', title: 'Cross-Case Knowledge Search', text: 'Search the uploaded past RCA documents and case notes. Has a similar VizQL session error occurred before? If so, what was the root cause and the applied workaround?' },
+                { id: 'p4', title: 'Documentation Summarization', text: 'Provide a concise, 5-point summary of the key limitations and workarounds mentioned in this Tableau Server deployment guide.' }
+            ],
+            categories: ['Troubleshooting & Support', 'Architecture & Migration', 'Strategy & Planning', 'Development & Deployment'],
+            setupComplete: false
+        };
+
+        let state = loadState();
+        let tempImages = [];
+        let editingFeatureId = null;
+        let editingCSId = null;
+        let cropperInstance = null;
+        let editingImageIndex = -1;
+        let searchDebounceTimer = null;
+        let adminEditImages = [];
+        let editingImageSource = 'creator';
+
+        function loadState() {
+            try {
+                const s = localStorage.getItem('notebook_portal_state');
+                if (s) {
+                    const parsed = JSON.parse(s);
+                    // Merge with defaults to handle new fields
+                    return {
+                        ...DEFAULT_STATE,
+                        ...parsed,
+                        landingOverview: { ...DEFAULT_STATE.landingOverview, ...(parsed.landingOverview || {}) },
+                        landingSummary: parsed.landingSummary || DEFAULT_STATE.landingSummary,
+                        caseStudySections: parsed.caseStudySections || DEFAULT_CASE_STUDIES,
+                        features: parsed.features || [],
+                        promptSamples: parsed.promptSamples || DEFAULT_STATE.promptSamples,
+                        categories: parsed.categories || DEFAULT_STATE.categories,
+                        setupComplete: parsed.setupComplete || false
+                    };
+                }
+            } catch(e) { console.error('Failed to parse state:', e); }
+            return { ...DEFAULT_STATE, caseStudySections: [...DEFAULT_CASE_STUDIES], promptSamples: [...DEFAULT_STATE.promptSamples], categories: [...DEFAULT_STATE.categories] };
+        }
+        function saveState() { try { localStorage.setItem('notebook_portal_state', JSON.stringify(state)); } catch(e) {} }
+
+        // ===== VIDEO URL PARSER =====
+        function getEmbedUrl(url) {
+            if (!url) return '';
+            let match = url.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+            if (match) return `https://www.youtube.com/embed/${match[1]}`;
+            if (url.includes('loom.com/share/')) return url.replace('/share/', '/embed/');
+            return url;
+        }
+
+        // ===== THEME ENGINE =====
+        function applyTheme() {
+            document.documentElement.classList.toggle('dark', state.isDark);
+            const thumb = document.getElementById('toggleThumb');
+            document.getElementById('themeToggle').setAttribute('aria-checked', state.isDark);
+            if (state.isDark) {
+                thumb.classList.remove('translate-x-0', 'bg-white');
+                thumb.classList.add('translate-x-6', 'bg-slate-800');
+                document.getElementById('sunIcon').classList.add('hidden');
+                document.getElementById('moonIcon').classList.remove('hidden');
+            } else {
+                thumb.classList.add('translate-x-0', 'bg-white');
+                thumb.classList.remove('translate-x-6', 'bg-slate-800');
+                document.getElementById('sunIcon').classList.remove('hidden');
+                document.getElementById('moonIcon').classList.add('hidden');
+            }
+        }
+        function toggleTheme() { state.isDark = !state.isDark; saveState(); applyTheme(); }
+
+        // ===== ROUTING ENGINE =====
+        function getBasePath() {
+            const path = window.location.pathname;
+            return path.substring(path.lastIndexOf('/') + 1) || 'index.html';
+        }
+
+        const ALL_VIEWS = ['welcome-view', 'home-view', 'create-view', 'feature-view', 'admin-view'];
+        function hideAllViews() { ALL_VIEWS.forEach(id => document.getElementById(id).classList.add('hidden')); }
+
+        function handleRoute() {
+            const basePath = getBasePath();
+            const params = new URLSearchParams(window.location.search);
+            const hash = window.location.hash;
+
+            // Update dynamic links
+            document.getElementById('home-link').href = basePath;
+            document.getElementById('back-home-create').href = basePath;
+            document.getElementById('back-home-link-admin').href = basePath;
+            document.getElementById('back-home-link-admin2').href = basePath;
+            document.getElementById('nav-admin-link').href = basePath + '#admin';
+
+            // Check for empty/first-visit state
+            if (!state.setupComplete && !state.features.length && hash !== '#admin') {
+                hideAllViews();
+                document.getElementById('welcome-view').classList.remove('hidden');
+                document.getElementById('header-title').textContent = state.portalTitle;
+                return;
+            }
+
+            if (params.get('id')) {
+                renderSingleFeatureView(params.get('id'));
+            } else if (hash === '#create') {
+                showCreateView();
+            } else if (hash === '#admin') {
+                showAdminView();
+            } else if (hash === '#view-all') {
+                // Redirect to home (merged)
+                window.location.hash = '';
+                showHomeView();
+            } else {
+                showHomeView();
+            }
+        }
+
+        function skipWelcome() {
+            state.setupComplete = true;
+            saveState();
+            window.location.hash = '';
+            handleRoute();
+        }
+
+        function showHomeView() {
+            hideAllViews();
+            document.getElementById('home-view').classList.remove('hidden');
+            document.getElementById('header-title').textContent = state.portalTitle;
+            renderHomeDashboard();
+        }
+
+        function showCreateView() {
+            hideAllViews();
+            document.getElementById('create-view').classList.remove('hidden');
+            document.getElementById('header-title').textContent = 'Submit New Usecase';
+        }
+
+        function showAdminView() {
+            hideAllViews();
+            document.getElementById('admin-view').classList.remove('hidden');
+            document.getElementById('header-title').textContent = 'Admin Panel';
+            if (sessionStorage.getItem('portal_auth') === 'true') {
+                document.getElementById('admin-lock').classList.add('hidden');
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                populateAdminSettings();
+                renderAdminFeatures();
+                populateLandingEditors();
+                renderAdminCaseStudies();
+            } else {
+                document.getElementById('admin-lock').classList.remove('hidden');
+                document.getElementById('admin-dashboard').classList.add('hidden');
+            }
+        }
+
+        // ===== INITIALIZATION =====
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (state.features.length === 0 && !state.setupComplete) {
+                try {
+                    const res = await fetch('data.json');
+                    if (res.ok) {
+                        const payload = await res.json();
+                        if (payload.state) {
+                            state = {
+                                ...DEFAULT_STATE,
+                                ...payload.state,
+                                landingOverview: { ...DEFAULT_STATE.landingOverview, ...(payload.state.landingOverview || {}) },
+                                caseStudySections: payload.state.caseStudySections || DEFAULT_CASE_STUDIES,
+                                setupComplete: true
+                            };
+                            saveState();
+                            if (payload.media) {
+                                for (const f of state.features) {
+                                    if (payload.media[f.id]) await saveMedia(f.id, payload.media[f.id]);
+                                }
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to load initial data.json:', e);
+                }
+            }
+
+            populateCategoryDropdowns();
+            applyTheme();
+            handleRoute();
+
+            document.getElementById('featureCreatorForm').addEventListener('submit', handleCreateFeature);
+            document.getElementById('upload-trigger').addEventListener('click', () => document.getElementById('f-images').click());
+            document.getElementById('f-images').addEventListener('change', handleImageUpload);
+            document.getElementById('login-form').addEventListener('submit', handleAdminLogin);
+            document.getElementById('settings-form').addEventListener('submit', handleSaveSettings);
+            document.getElementById('feedback-form').addEventListener('submit', submitFeedback);
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                clearTimeout(searchDebounceTimer);
+                searchDebounceTimer = setTimeout(() => filterUsecases(e.target.value), 300);
+            });
+
+            window.addEventListener('hashchange', handleRoute);
+        });
+
+        // ===== TOASTS =====
+        function showToast(m, t='success') {
+            const c = document.getElementById('toast-container');
+            const d = document.createElement('div');
+            d.className = `pointer-events-auto px-5 py-3 rounded-lg shadow-xl text-sm font-medium ${t==='success'?'bg-gemini-green text-white':'bg-red-500 text-white'} toast-animate flex items-center gap-2`;
+            d.innerHTML = `<span>${m}</span>`;
+            c.appendChild(d);
+            setTimeout(() => { d.style.opacity='0'; d.style.transition='opacity 0.3s'; setTimeout(() => d.remove(), 300); }, 4000);
+        }
+
+        // ===== IMAGE UPLOAD & EDITOR =====
+        function handleImageUpload(e) {
+            Array.from(e.target.files).forEach(f => {
+                if (f.size > 5*1024*1024) { showToast('Image > 5MB','error'); return; }
+                const r = new FileReader();
+                r.onloadend = () => { tempImages.push(r.result); renderImagePreviews(); };
+                r.readAsDataURL(f);
+            });
+            e.target.value = '';
+        }
+
+        function renderImagePreviews() {
+            document.getElementById('imagePreviews').innerHTML = tempImages.map((s, i) => `
+                <div class="relative h-24 w-32 bg-slate-100 dark:bg-slate-700 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-600 img-thumb">
+                    <img src="${s}" alt="Preview" class="h-full w-full object-contain">
+                    <div class="img-overlay absolute inset-0 bg-black/60 flex items-center justify-center gap-2">
+                        <button type="button" onclick="openImageEditor(${i})" class="p-1.5 bg-white/20 rounded-md hover:bg-white/40 transition-colors text-white" title="Edit">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        </button>
+                        <button type="button" onclick="removeImage(${i})" class="p-1.5 bg-white/20 rounded-md hover:bg-red-500/80 transition-colors text-white" title="Delete">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function removeImage(i) { tempImages.splice(i, 1); renderImagePreviews(); }
+
+        // ===== ADMIN IMAGE MANAGEMENT =====
+        function renderAdminEditPreviews() {
+            const container = document.getElementById('admin-img-previews');
+            if (!container) return;
+            container.innerHTML = adminEditImages.length ? adminEditImages.map((src, i) => `
+                <div class="relative h-20 w-20 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-600 img-thumb">
+                    <img src="${src}" alt="Preview" class="h-full w-full object-cover">
+                    <div class="img-overlay absolute inset-0 bg-black/60 flex items-center justify-center gap-2">
+                        <button type="button" onclick="openImageEditor(${i}, 'admin')" class="p-1.5 bg-white/20 rounded-md hover:bg-white/40 transition-colors text-white" title="Edit">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                        </button>
+                        <button type="button" onclick="removeAdminImage(${i})" class="p-1.5 bg-white/20 rounded-md hover:bg-red-500/80 transition-colors text-white" title="Delete">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('') : '<span class="text-xs text-slate-400 italic">No images attached</span>';
+        }
+
+        function removeAdminImage(i) { adminEditImages.splice(i, 1); renderAdminEditPreviews(); }
+
+        function handleAdminImageUpload(e) {
+            Array.from(e.target.files).forEach(f => {
+                if (f.size > 5*1024*1024) { showToast('Image > 5MB','error'); return; }
+                const r = new FileReader();
+                r.onloadend = () => { adminEditImages.push(r.result); renderAdminEditPreviews(); };
+                r.readAsDataURL(f);
+            });
+            e.target.value = '';
+        }
+
+        function openImageEditor(index, source) {
+            editingImageIndex = index;
+            editingImageSource = source || 'creator';
+            const images = editingImageSource === 'admin' ? adminEditImages : tempImages;
+            const modal = document.getElementById('imageEditorModal');
+            const img = document.getElementById('editor-image');
+            img.src = images[index];
+            modal.showModal();
+            // Wait for image to load then init Cropper
+            img.onload = () => {
+                if (cropperInstance) cropperInstance.destroy();
+                cropperInstance = new Cropper(img, {
+                    viewMode: 1,
+                    dragMode: 'move',
+                    autoCropArea: 0.9,
+                    responsive: true,
+                    background: false
+                });
+            };
+        }
+
+        function editorAction(action) {
+            if (!cropperInstance) return;
+            switch(action) {
+                case 'rotateCW': cropperInstance.rotate(90); break;
+                case 'rotateCCW': cropperInstance.rotate(-90); break;
+                case 'zoomIn': cropperInstance.zoom(0.1); break;
+                case 'zoomOut': cropperInstance.zoom(-0.1); break;
+                case 'reset': cropperInstance.reset(); break;
+            }
+        }
+
+        function applyImageEdit() {
+            if (!cropperInstance || editingImageIndex < 0) return;
+            const canvas = cropperInstance.getCroppedCanvas({ maxWidth: 1920, maxHeight: 1080 });
+            const images = editingImageSource === 'admin' ? adminEditImages : tempImages;
+            images[editingImageIndex] = canvas.toDataURL('image/jpeg', 0.85);
+            closeImageEditor();
+            if (editingImageSource === 'admin') {
+                renderAdminEditPreviews();
+            } else {
+                renderImagePreviews();
+            }
+            showToast('Image edited successfully!');
+        }
+
+        function closeImageEditor() {
+            if (cropperInstance) { cropperInstance.destroy(); cropperInstance = null; }
+            editingImageIndex = -1;
+            document.getElementById('imageEditorModal').close();
+        }
+
+        // ===== PUBLISH USECASE =====
+        async function handleCreateFeature(e) {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            if (submitBtn) { submitBtn.innerText = 'Publishing...'; submitBtn.disabled = true; }
+            
+            try {
+                const title = document.getElementById('f-title').value.trim();
+                const category = document.getElementById('f-category').value;
+                const details = document.getElementById('f-details').value.trim();
+                const usecase = document.getElementById('f-usecase').value.trim();
+                const videoUrl = document.getElementById('f-video').value.trim();
+                const refUrl = document.getElementById('f-url').value.trim();
+                if (!title || !details || !usecase) { showToast('Fill all required fields', 'error'); if(submitBtn){submitBtn.innerText='Submit Usecase';submitBtn.disabled=false;} return; }
+                
+                const id = Date.now().toString();
+                state.features.unshift({ id, title, category, details, usecase, refUrl, media: [...(videoUrl ? [{type:'video', url:videoUrl}] : [])], createdAt: Date.now() });
+                saveState();
+                if (tempImages.length > 0) await saveMedia(id, tempImages.map(img => ({type:'image', url:img})));
+                
+                // Proxy to Cloudflare Worker
+                try {
+                    const payload = { state: state, media: {} };
+                    for (const f of state.features) { const imgs = await getMedia(f.id); if (imgs.length) payload.media[f.id] = imgs; }
+                    
+                    // REPLACE THIS URL with your deployed Cloudflare Worker URL
+                    const WORKER_URL = 'https://replace-with-your-worker-url.workers.dev'; 
+                    if (!WORKER_URL.includes('replace-with')) {
+                        const response = await fetch(WORKER_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (!response.ok) throw new Error(await response.text());
+                        showToast(`"${title}" published to GitHub!`);
+                    } else {
+                        showToast(`"${title}" saved locally (Worker URL not configured).`);
+                    }
+                } catch(proxyErr) {
+                    console.error('GitHub Proxy Error:', proxyErr);
+                    showToast('Saved locally, but GitHub publish failed.', 'error');
+                }
+
+                document.getElementById('featureCreatorForm').reset();
+                tempImages = [];
+                renderImagePreviews();
+                
+                // Navigate to home
+                window.location.hash = '';
+            } catch(err) { 
+                console.error(err); showToast('Publish error', 'error'); 
+            } finally {
+                if (submitBtn) { submitBtn.innerText = 'Submit Usecase'; submitBtn.disabled = false; }
+            }
+        }
+
+        // ===== HOME DASHBOARD RENDERING =====
+        async function renderHomeDashboard() {
+            // Hero title
+            document.getElementById('hero-title').textContent = state.portalTitle;
+
+            // Overview
+            renderOverview();
+
+            // Prompt Samples
+            renderPromptSamples();
+
+            // Case Studies
+            renderCaseStudies();
+
+            // Stats
+            renderStats();
+
+            // Summary
+            renderSummary();
+
+            // Usecases Grid
+            await renderUsecaseGrid();
+        }
+
+        function renderOverview() {
+            const o = state.landingOverview;
+            document.getElementById('overview-content').innerHTML = `
+                <div class="flex items-start gap-4">
+                    <div class="hidden sm:flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gemini-blue to-purple-500 text-white">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-900 dark:text-white mb-3">${o.title}</h3>
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed mb-3">${o.content}</p>
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">${o.supportContext}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPromptSamples() {
+            const list = document.getElementById('prompt-samples-list');
+            const section = document.getElementById('prompt-samples-section');
+            const samples = state.promptSamples || [];
+            
+            if (!samples.length) {
+                section.classList.add('hidden');
+                return;
+            }
+            
+            section.classList.remove('hidden');
+            list.innerHTML = samples.map(p => `
+                <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 relative group">
+                    <button onclick="copyPrompt('${p.id}')" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-blue-600 dark:hover:text-slate-blue-400 bg-slate-50 dark:bg-slate-900 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" title="Copy Prompt">
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                    </button>
+                    <div class="flex items-center gap-3 mb-3 pr-8">
+                        <div class="h-8 w-8 rounded-full bg-slate-blue-100 dark:bg-slate-blue-900/30 flex items-center justify-center text-slate-blue-600 dark:text-slate-blue-400">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <h4 class="font-bold text-slate-900 dark:text-white text-base">${p.title}</h4>
+                    </div>
+                    <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-lg border border-slate-100 dark:border-slate-700">
+                        <p id="prompt-text-${p.id}" class="text-slate-600 dark:text-slate-300 text-sm font-mono preserve-formatting select-all">${p.text}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function copyPrompt(id) {
+            const text = document.getElementById(`prompt-text-${id}`).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Prompt copied to clipboard!');
+            }).catch(() => {
+                showToast('Failed to copy prompt.', true);
+            });
+        }
+
+        function renderCaseStudies() {
+            const sections = (state.caseStudySections || []).filter(s => s.status === 'active' || s.status === 'draft').sort((a,b) => a.order - b.order);
+            document.getElementById('cs-count-badge').textContent = sections.filter(s => s.status === 'active').length + ' Active';
+
+            const icons = ['🔍','🛡️','✅','🗺️','📊','🎧','🗄️','📋','⚡','🔧'];
+
+            document.getElementById('case-studies-list').innerHTML = sections.map((s, idx) => {
+                const icon = icons[idx % icons.length];
+                const isDraft = s.status === 'draft';
+                const prosHTML = s.pros.length ? `<div class="mt-3"><h5 class="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 mb-1.5">Pros</h5><ul class="space-y-1">${s.pros.map(p => `<li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300"><svg class="h-4 w-4 mt-0.5 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>${p}</li>`).join('')}</ul></div>` : '';
+                const consHTML = s.cons.length ? `<div class="mt-3"><h5 class="text-xs font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-1.5">Limitations</h5><ul class="space-y-1">${s.cons.map(c => `<li class="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300"><svg class="h-4 w-4 mt-0.5 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path></svg>${c}</li>`).join('')}</ul></div>` : '';
+
+                return `
+                <div class="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-card dark:shadow-card-dark overflow-hidden">
+                    <button onclick="toggleAccordion('cs-acc-${s.id}')" class="w-full flex items-center justify-between p-5 text-left hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors group">
+                        <div class="flex items-center gap-3">
+                            <div>
+                                <h4 class="font-bold text-slate-900 dark:text-white group-hover:text-gemini-blue transition-colors">${isDraft ? '<span class="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full mr-2 font-bold">DRAFT</span>' : ''}${s.title}</h4>
+                                <p class="text-sm text-slate-500 mt-0.5 line-clamp-1">${s.challenge}</p>
+                            </div>
+                        </div>
+                        <svg class="h-5 w-5 text-slate-400 transition-transform duration-300 accordion-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="cs-acc-${s.id}" class="accordion-body border-t border-slate-100 dark:border-slate-700 px-5">
+                        <div class="py-5 space-y-4">
+                            <div><h5 class="text-xs font-bold uppercase tracking-wider text-red-500 mb-1">Challenge</h5><p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">${s.challenge}</p></div>
+                            <div><h5 class="text-xs font-bold uppercase tracking-wider text-gemini-blue mb-1">How NotebookLM Helps</h5><p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">${s.solution}</p></div>
+                            <div><h5 class="text-xs font-bold uppercase tracking-wider text-purple-500 mb-1">Impact</h5><p class="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">${s.impact}</p></div>
+                            ${prosHTML}
+                            ${consHTML}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function toggleAccordion(id) {
+            const el = document.getElementById(id);
+            const chevron = el.previousElementSibling.querySelector('.accordion-chevron');
+            el.classList.toggle('expanded');
+            if (el.classList.contains('expanded')) {
+                el.style.paddingTop = '0';
+                el.style.paddingBottom = '0';
+                chevron.style.transform = 'rotate(180deg)';
+            } else {
+                chevron.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function renderStats() {
+            const total = state.features.length;
+            const sections = (state.caseStudySections || []).filter(s => s.status === 'active').length;
+            const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+            const recent = state.features.filter(f => (f.createdAt || parseInt(f.id)) > oneWeekAgo).length;
+
+            animateCounter('stat-total', total);
+            animateCounter('stat-sections', sections);
+            animateCounter('stat-recent', recent);
+        }
+
+        function animateCounter(elId, target) {
+            const el = document.getElementById(elId);
+            if (target === 0) { el.textContent = '0'; return; }
+            let current = 0;
+            const step = Math.max(1, Math.floor(target / 25));
+            const interval = setInterval(() => {
+                current += step;
+                if (current >= target) { current = target; clearInterval(interval); }
+                el.textContent = current;
+            }, 40);
+        }
+
+        function renderSummary() {
+            document.getElementById('summary-content').innerHTML = `
+                <div class="flex items-start gap-3">
+                    <svg class="h-6 w-6 text-gemini-blue flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <div>
+                        <h4 class="font-bold text-slate-900 dark:text-white mb-2">Summary</h4>
+                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed text-sm">${state.landingSummary}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        let activeCategoryTab = 'All';
+
+        async function renderUsecaseGrid(featuresToRender = null) {
+            const grid = document.getElementById('usecases-grid');
+            const tabsContainer = document.getElementById('category-tabs');
+            
+            const allFeatures = state.features;
+            const categories = ['All', ...new Set(allFeatures.map(f => f.category || 'General'))];
+            
+            // tabsContainer.innerHTML = categories.map(cat => 
+            //     `<button onclick="setActiveCategory('${cat}')" class="px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all border ${activeCategoryTab === cat ? 'bg-gemini-blue text-white border-gemini-blue shadow-md scale-105' : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700'}">${cat}</button>`
+            // ).join('');
+            
+            // Header dropdown is now handled by populateCategoryDropdowns() and state.categories
+
+            let features = featuresToRender || state.features;
+            if (activeCategoryTab !== 'All') {
+                features = features.filter(f => (f.category || 'General') === activeCategoryTab);
+            }
+
+            if (!features.length) {
+                grid.innerHTML = `<div class="col-span-full text-center py-16"><div class="text-4xl mb-3">📄</div><p class="text-slate-400 font-medium">${featuresToRender ? 'No usecases match your search.' : 'No usecases in this category.'}</p>${!featuresToRender ? '<a href="#create" class="inline-block mt-3 text-sm font-semibold text-gemini-blue hover:underline">+ Submit your first usecase</a>' : ''}</div>`;
+                return;
+            }
+
+            const basePath = getBasePath();
+            const cards = await Promise.all(features.map(async f => {
+                const imgs = await getMedia(f.id);
+                const thumb = imgs.length > 0 ? imgs[0].url : (f.media && f.media.find(m => m.type === 'video') ? 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23334155" width="100" height="100" rx="8"/><text x="50" y="55" text-anchor="middle" fill="%2394a3b8" font-size="30">▶</text></svg>' : 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23334155" width="100" height="100" rx="8"/><text x="50" y="55" text-anchor="middle" fill="%2394a3b8" font-size="24">📄</text></svg>');
+                const cat = f.category || 'General';
+                return `<a href="?id=${f.id}" class="usecase-card block bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-card dark:shadow-card-dark overflow-hidden hover:shadow-lg group card-3d perspective-1000 transform-style-3d">
+                    <div class="h-44 bg-slate-100 dark:bg-slate-700 overflow-hidden relative"><span class="absolute top-2 right-2 bg-slate-900/70 text-white text-xs px-2 py-1 rounded backdrop-blur-sm z-10">${cat}</span><img src="${thumb}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="${f.title}" loading="lazy"></div>
+                    <div class="p-5"><h3 class="text-base font-bold text-slate-900 dark:text-white group-hover:text-gemini-blue transition-colors line-clamp-1">${f.title}</h3><p class="text-sm text-slate-500 mt-1.5 line-clamp-2">${f.details}</p></div>
+                </a>`;
+            }));
+            
+            grid.innerHTML = cards.join('');
+        }
+
+        function setActiveCategory(cat) {
+            activeCategoryTab = cat;
+            const query = document.getElementById('search-input').value.toLowerCase().trim();
+            if (query) {
+                filterUsecases(query);
+            } else {
+                renderUsecaseGrid();
+            }
+        }
+
+        function populateCategoryDropdowns() {
+            const optionsHTML = (state.categories || []).map(c => `<option value="${c}">${c}</option>`).join('');
+            const createSelect = document.getElementById('f-category');
+            if (createSelect) createSelect.innerHTML = optionsHTML;
+
+            const headerDrop = document.getElementById('header-categories-dropdown');
+            if (headerDrop) {
+                const linkClass = "px-4 py-2 text-sm font-medium text-slate-700 hover:text-slate-blue-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:text-slate-blue-400 dark:hover:bg-slate-700/50 transition-colors";
+                let links = `<a href="#usecases-grid-section" onclick="setActiveCategory('All')" class="${linkClass}">All Categories</a>`;
+                links += (state.categories || []).map(c => `<a href="#usecases-grid-section" onclick="setActiveCategory('${c}')" class="${linkClass}">${c}</a>`).join('');
+                headerDrop.innerHTML = links;
+            }
+        }
+
+        // ===== SEARCH =====
+        function filterUsecases(query) {
+            const q = query.toLowerCase().trim();
+            if (!q) { renderUsecaseGrid(); return; }
+            const filtered = state.features.filter(f =>
+                f.title.toLowerCase().includes(q) ||
+                f.details.toLowerCase().includes(q) ||
+                (f.usecase && f.usecase.toLowerCase().includes(q))
+            );
+            renderUsecaseGrid(filtered);
+        }
+
+        // ===== SINGLE FEATURE VIEW =====
+        async function renderSingleFeatureView(id) {
+            const f = state.features.find(x => x.id === id);
+            hideAllViews();
+            document.getElementById('feature-view').classList.remove('hidden');
+            document.getElementById('header-title').textContent = f ? f.title : 'Not Found';
+            const basePath = getBasePath();
+
+            if (!f) {
+                document.getElementById('feature-text-container').innerHTML = `<div class="flex flex-col items-center justify-center h-full text-center"><h2 class="text-2xl font-bold text-slate-400">Not Found</h2><a href="${basePath}" class="mt-4 text-slate-blue-600 hover:underline">Go back</a></div>`;
+                document.getElementById('feature-media-container').innerHTML = '';
+                return;
+            }
+
+            document.getElementById('feature-text-container').innerHTML = `
+                <div class="max-w-2xl mx-auto pb-12">
+                    <a href="${basePath}" class="inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-blue-600 mb-6 transition-colors"><svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>Back to Dashboard</a>
+                    <span class="inline-block rounded-full bg-gemini-blue/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-gemini-blue dark:bg-gemini-blue/20 mb-4">NotebookLM Usecase</span>
+                    <h1 class="text-3xl lg:text-4xl font-extrabold text-slate-900 dark:text-white mb-8 leading-tight">${f.title}</h1>
+                    <div class="mb-8"><h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3">Description</h2><p class="text-slate-700 dark:text-slate-300 leading-7 text-base preserve-formatting">${f.details}</p></div>
+                    <div class="mb-8"><h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3">Impact & Application</h2><div class="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-5 rounded-xl"><p class="text-slate-700 dark:text-slate-200 leading-7 text-base preserve-formatting">${f.usecase}</p></div></div>
+                    
+                    ${f.refUrl ? `
+                    <div class="mb-8 mt-8 pt-8 border-t border-slate-200 dark:border-slate-700">
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-slate-400 mb-3">Notebook URL</h2>
+                        <a href="${f.refUrl}" target="_blank" class="inline-flex items-center gap-2 px-6 py-3 bg-gemini-green/10 text-gemini-green hover:bg-gemini-green hover:text-white rounded-lg font-bold transition-colors">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                            Open Shared Notebook
+                        </a>
+                    </div>
+                    ` : ''}
+
+                    <div class="flex flex-col sm:flex-row gap-4 mt-4">
+                        <button onclick="openFeedbackModal('${f.id}')" class="w-full sm:w-auto px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>Leave Feedback</button>
+                    </div>
+                </div>`;
+
+            const imgs = await getMedia(id);
+            const vids = f.media || [];
+            const allMedia = [...imgs, ...vids];
+
+            if (!allMedia.length) {
+                document.getElementById('feature-media-container').innerHTML = '<div class="text-slate-400 text-sm text-center mt-20">No Media Attached</div>';
+            } else {
+                const mediaHTML = allMedia.map(m => {
+                    if (m.type === 'image') return `<div class="w-full max-w-2xl mb-6 bg-white p-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm"><img src="${m.url}" alt="Media" class="w-full h-auto max-h-[80vh] object-contain rounded-lg"></div>`;
+                    return `<div class="w-full max-w-2xl mb-6 aspect-video bg-black rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700"><iframe src="${getEmbedUrl(m.url)}" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+                }).join('');
+                document.getElementById('feature-media-container').innerHTML = mediaHTML;
+            }
+        }
+
+        // ===== ADMIN =====
+        function handleAdminLogin(e) {
+            e.preventDefault();
+            if (document.getElementById('admin-pass-input').value === state.password) {
+                sessionStorage.setItem('portal_auth', 'true');
+                document.getElementById('admin-lock').classList.add('hidden');
+                document.getElementById('admin-dashboard').classList.remove('hidden');
+                document.getElementById('login-error').classList.add('hidden');
+                populateAdminSettings();
+                renderAdminFeatures();
+                populateLandingEditors();
+                renderAdminCaseStudies();
+                renderAdminPrompts();
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
+            }
+        }
+
+        function switchAdminTab(tab) {
+            document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.admin-tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`admin-tab-${tab}`).classList.remove('hidden');
+            document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+            if (tab === 'categories') renderAdminCategories();
+            if (tab === 'usecases') renderAdminFeatures();
+            if (tab === 'casestudy') { populateLandingEditors(); renderAdminCaseStudies(); }
+            if (tab === 'prompts') renderAdminPrompts();
+        }
+
+        function populateAdminSettings() {
+            document.getElementById('set-title').value = state.portalTitle;
+            document.getElementById('set-email').value = state.adminEmail;
+        }
+
+        function handleSaveSettings(e) {
+            e.preventDefault();
+            state.portalTitle = document.getElementById('set-title').value.trim() || state.portalTitle;
+            state.adminEmail = document.getElementById('set-email').value.trim() || state.adminEmail;
+            const p = document.getElementById('set-pass').value.trim();
+            if (p) state.password = p;
+            saveState();
+            showToast('Settings saved!');
+        }
+
+        // -- Admin: Categories CRUD --
+        let editingCategoryIndex = -1;
+        function renderAdminCategories() {
+            const list = document.getElementById('admin-categories-list');
+            if (!state.categories || !state.categories.length) { list.innerHTML = '<p class="text-sm text-slate-500 text-center py-8">No categories.</p>'; return; }
+            list.innerHTML = state.categories.map((cat, idx) => {
+                if (idx === editingCategoryIndex) {
+                    return `<div class="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border-2 border-slate-blue-400">
+                        <input type="text" id="edit-cat-${idx}" value="${cat}" class="flex-1 rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-slate-blue-500 font-bold">
+                        <button onclick="editingCategoryIndex=-1; renderAdminCategories()" class="px-3 py-1.5 text-sm font-bold rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">Cancel</button>
+                        <button onclick="handleUpdateCategory(${idx})" class="px-3 py-1.5 text-sm font-bold rounded-lg bg-gemini-green text-white">Save</button>
+                    </div>`;
+                }
+                return `<div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow transition-shadow">
+                    <span class="text-sm font-bold text-slate-900 dark:text-white">${cat}</span>
+                    <div class="flex gap-2">
+                        <button onclick="editingCategoryIndex=${idx}; renderAdminCategories()" class="px-3 py-1.5 text-xs font-bold bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 rounded-md">Edit</button>
+                        <button onclick="handleDeleteCategory(${idx})" class="px-3 py-1.5 text-xs font-bold bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 rounded-md">Delete</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        function handleAddCategory() {
+            state.categories.push('New Category');
+            editingCategoryIndex = state.categories.length - 1;
+            saveState(); renderAdminCategories(); populateCategoryDropdowns();
+        }
+        function handleUpdateCategory(idx) {
+            const val = document.getElementById(`edit-cat-${idx}`).value.trim();
+            if (val) state.categories[idx] = val;
+            editingCategoryIndex = -1;
+            saveState(); renderAdminCategories(); renderUsecaseGrid(); populateCategoryDropdowns();
+        }
+        function handleDeleteCategory(idx) {
+            if (confirm('Delete this category?')) {
+                state.categories.splice(idx, 1);
+                saveState(); renderAdminCategories(); renderUsecaseGrid(); populateCategoryDropdowns();
+            }
+        }
+
+        // -- Admin: Usecases CRUD --
+        async function renderAdminFeatures() {
+            const l = document.getElementById('admin-features-list');
+            if (!state.features.length) { l.innerHTML = '<p class="text-sm text-slate-500 text-center py-8">No usecases.</p>'; return; }
+            l.innerHTML = state.features.map(f => {
+                if (f.id === editingFeatureId) {
+                    const catOptions = (state.categories || []).map(c => `<option value="${c}" ${f.category===c?'selected':''}>${c}</option>`).join('');
+                    return `<div class="p-5 bg-slate-50 dark:bg-slate-900/50 rounded-xl border-2 border-slate-blue-400 space-y-3">
+                        <input type="text" id="et-${f.id}" value="${f.title}" class="w-full rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-slate-blue-500 font-bold">
+                        <select id="ec-${f.id}" class="w-full rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-slate-blue-500">${catOptions}</select>
+                        <textarea id="ed-${f.id}" rows="3" class="w-full rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-slate-blue-500 resize-y">${f.details}</textarea>
+                        <textarea id="eu-${f.id}" rows="3" class="w-full rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-slate-blue-500 resize-y">${f.usecase}</textarea>
+                        <input type="url" id="eur-${f.id}" value="${f.refUrl||''}" placeholder="Documentation Link" class="w-full rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-slate-blue-500">
+                        <input type="url" id="ev-${f.id}" value="${f.media && f.media.find(m=>m.type==='video')?.url||''}" placeholder="Video URL" class="w-full rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-slate-blue-500">
+                        <div class="border-t border-slate-200 dark:border-slate-700 pt-3">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Images</span>
+                                <label class="px-3 py-1.5 text-xs font-bold bg-gemini-blue text-white rounded-md cursor-pointer hover:bg-blue-600 transition-colors">
+                                    + Upload
+                                    <input type="file" accept="image/*" multiple class="hidden" onchange="handleAdminImageUpload(event)">
+                                </label>
+                            </div>
+                            <div id="admin-img-previews" class="flex flex-wrap gap-2 min-h-[24px]"></div>
+                        </div>
+                        <div class="flex gap-3 justify-end pt-1"><button onclick="cancelEdit()" class="px-4 py-2 text-sm font-bold rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">Cancel</button><button onclick="handleUpdateFeature('${f.id}')" class="px-4 py-2 text-sm font-bold rounded-lg bg-gemini-green text-white">Update</button></div></div>`;
+                } else {
+                    return `<div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                        <div class="flex-1 mr-4 overflow-hidden"><h4 class="text-sm font-bold text-slate-900 dark:text-white truncate">${f.title}</h4><p class="text-xs text-slate-500 truncate mt-1">${f.details}</p></div>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <button onclick="startEdit('${f.id}')" class="px-3 py-1.5 text-xs font-bold bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 rounded-md">Edit</button>
+                            <button onclick="handleDeleteFeature('${f.id}')" class="px-3 py-1.5 text-xs font-bold bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 rounded-md">Delete</button>
+                        </div></div>`;
+                }
+            }).join('');
+            // After DOM update, render image previews for editing feature
+            if (editingFeatureId) {
+                requestAnimationFrame(() => renderAdminEditPreviews());
+            }
+        }
+
+        async function startEdit(id) {
+            editingFeatureId = id;
+            const imgs = await getMedia(id);
+            adminEditImages = (imgs || []).map(img => typeof img === 'string' ? img : img.url);
+            renderAdminFeatures();
+        }
+        function cancelEdit() { editingFeatureId = null; adminEditImages = []; renderAdminFeatures(); }
+        async function handleUpdateFeature(id) {
+            const f = state.features.find(x => x.id === id); if (!f) return;
+            f.title = document.getElementById(`et-${id}`).value.trim();
+            f.category = document.getElementById(`ec-${id}`).value.trim();
+            f.details = document.getElementById(`ed-${id}`).value.trim();
+            f.usecase = document.getElementById(`eu-${id}`).value.trim();
+            f.refUrl = document.getElementById(`eur-${id}`).value.trim();
+            const v = document.getElementById(`ev-${id}`).value.trim();
+            f.media = v ? [{type:'video', url:v}] : [];
+            // Save images to IndexedDB
+            if (adminEditImages.length > 0) {
+                await saveMedia(id, adminEditImages.map(img => ({type:'image', url:img})));
+            } else {
+                await deleteMedia(id);
+            }
+            editingFeatureId = null; adminEditImages = []; saveState(); renderAdminFeatures(); showToast('Updated!');
+        }
+        async function handleDeleteFeature(id) {
+            if (confirm('Permanently delete this usecase?')) {
+                state.features = state.features.filter(f => f.id !== id);
+                saveState(); await deleteMedia(id); renderAdminFeatures(); showToast('Deleted!');
+            }
+        }
+
+        // -- Admin: Landing Page Content --
+        function populateLandingEditors() {
+            document.getElementById('edit-overview-title').value = state.landingOverview.title;
+            document.getElementById('edit-overview-content').value = state.landingOverview.content;
+            document.getElementById('edit-overview-context').value = state.landingOverview.supportContext;
+            document.getElementById('edit-landing-summary').value = state.landingSummary;
+        }
+
+        function saveLandingOverview() {
+            state.landingOverview.title = document.getElementById('edit-overview-title').value.trim();
+            state.landingOverview.content = document.getElementById('edit-overview-content').value.trim();
+            state.landingOverview.supportContext = document.getElementById('edit-overview-context').value.trim();
+            saveState(); showToast('Overview saved!');
+        }
+
+        function saveLandingSummary() {
+            state.landingSummary = document.getElementById('edit-landing-summary').value.trim();
+            saveState(); showToast('Summary saved!');
+        }
+
+        // -- Admin: Case Study CRUD --
+        function renderAdminCaseStudies() {
+            const l = document.getElementById('admin-cs-list');
+            const sections = (state.caseStudySections || []).sort((a,b) => a.order - b.order);
+            if (!sections.length) { l.innerHTML = '<p class="text-sm text-slate-500 text-center py-8">No case study sections.</p>'; return; }
+
+            l.innerHTML = sections.map((s, idx) => {
+                if (s.id === editingCSId) {
+                    return `<div class="p-5 bg-slate-50 dark:bg-slate-900/50 rounded-xl border-2 border-slate-blue-400 space-y-3">
+                        <input type="text" id="cst-${s.id}" value="${s.title}" placeholder="Title" class="w-full rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-slate-blue-500 font-bold">
+                        <textarea id="csc-${s.id}" rows="2" placeholder="Challenge" class="w-full rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-slate-blue-500 resize-y">${s.challenge}</textarea>
+                        <textarea id="css-${s.id}" rows="2" placeholder="Solution" class="w-full rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-slate-blue-500 resize-y">${s.solution}</textarea>
+                        <textarea id="csi-${s.id}" rows="2" placeholder="Impact" class="w-full rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-slate-blue-500 resize-y">${s.impact}</textarea>
+                        <input type="text" id="csp-${s.id}" value="${s.pros.join(', ')}" placeholder="Pros (comma separated)" class="w-full rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-slate-blue-500">
+                        <input type="text" id="csn-${s.id}" value="${s.cons.join(', ')}" placeholder="Limitations (comma separated)" class="w-full rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-slate-blue-500">
+                        <select id="csst-${s.id}" class="rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none">
+                            <option value="active" ${s.status==='active'?'selected':''}>Active</option>
+                            <option value="draft" ${s.status==='draft'?'selected':''}>Draft</option>
+                        </select>
+                        <div class="flex gap-3 justify-end pt-1"><button onclick="cancelCSEdit()" class="px-4 py-2 text-sm font-bold rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200">Cancel</button><button onclick="saveCSEdit('${s.id}')" class="px-4 py-2 text-sm font-bold rounded-lg bg-gemini-green text-white">Save</button></div></div>`;
+                }
+                return `<div class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+                    <div class="flex items-center gap-3 flex-1 mr-3 overflow-hidden">
+                        <span class="text-xs font-bold text-slate-400 w-6 text-center">${s.order}</span>
+                        <div class="overflow-hidden"><h4 class="text-sm font-bold text-slate-900 dark:text-white truncate">${s.status==='draft'?'<span class="text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-1.5 py-0.5 rounded font-bold mr-1">DRAFT</span>':''}${s.title}</h4></div>
+                    </div>
+                    <div class="flex items-center gap-1.5 flex-shrink-0">
+                        ${idx > 0 ? `<button onclick="moveCaseStudy('${s.id}',-1)" class="p-1.5 text-xs bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600" title="Move Up">↑</button>` : ''}
+                        ${idx < sections.length - 1 ? `<button onclick="moveCaseStudy('${s.id}',1)" class="p-1.5 text-xs bg-slate-100 dark:bg-slate-700 rounded hover:bg-slate-200 dark:hover:bg-slate-600" title="Move Down">↓</button>` : ''}
+                        <button onclick="startCSEdit('${s.id}')" class="px-3 py-1.5 text-xs font-bold bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 rounded-md">Edit</button>
+                        <button onclick="deleteCaseStudy('${s.id}')" class="px-3 py-1.5 text-xs font-bold bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 rounded-md">Delete</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function addCaseStudySection() {
+            const newId = 'cs-' + Date.now();
+            const maxOrder = Math.max(0, ...(state.caseStudySections || []).map(s => s.order));
+            state.caseStudySections.push({ id: newId, order: maxOrder + 1, title: 'New Section', challenge: '', solution: '', impact: '', pros: [], cons: [], status: 'draft' });
+            saveState();
+            editingCSId = newId;
+            renderAdminCaseStudies();
+        }
+
+        function startCSEdit(id) { editingCSId = id; renderAdminCaseStudies(); }
+        function cancelCSEdit() { editingCSId = null; renderAdminCaseStudies(); }
+
+        function saveCSEdit(id) {
+            const s = state.caseStudySections.find(x => x.id === id); if (!s) return;
+            s.title = document.getElementById(`cst-${id}`).value.trim();
+            s.challenge = document.getElementById(`csc-${id}`).value.trim();
+            s.solution = document.getElementById(`css-${id}`).value.trim();
+            s.impact = document.getElementById(`csi-${id}`).value.trim();
+            s.pros = document.getElementById(`csp-${id}`).value.split(',').map(p => p.trim()).filter(Boolean);
+            s.cons = document.getElementById(`csn-${id}`).value.split(',').map(c => c.trim()).filter(Boolean);
+            s.status = document.getElementById(`csst-${id}`).value;
+            editingCSId = null; saveState(); renderAdminCaseStudies(); showToast('Section saved!');
+        }
+
+        function deleteCaseStudy(id) {
+            if (confirm('Delete this case study section?')) {
+                state.caseStudySections = state.caseStudySections.filter(s => s.id !== id);
+                saveState(); renderAdminCaseStudies(); showToast('Section deleted!');
+            }
+        }
+
+        function moveCaseStudy(id, dir) {
+            const sorted = state.caseStudySections.sort((a,b) => a.order - b.order);
+            const idx = sorted.findIndex(s => s.id === id);
+            if (idx === -1 || (dir === -1 && idx === 0) || (dir === 1 && idx === sorted.length - 1)) return;
+            const temp = sorted[idx].order;
+            sorted[idx].order = sorted[idx+dir].order;
+            sorted[idx+dir].order = temp;
+            saveState(); renderAdminCaseStudies();
+        }
+
+        // -- Admin: Prompt Samples CRUD --
+        let editingPromptId = null;
+        function renderAdminPrompts() {
+            const l = document.getElementById('admin-prompts-list');
+            if (!state.promptSamples || !state.promptSamples.length) { l.innerHTML = '<p class="text-sm text-slate-500 text-center py-8">No prompt samples.</p>'; return; }
+            l.innerHTML = state.promptSamples.map(p => {
+                if (p.id === editingPromptId) {
+                    return `<div class="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border-2 border-slate-blue-400 space-y-3">
+                        <input type="text" id="pt-${p.id}" value="${p.title}" class="w-full rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none font-bold focus:border-slate-blue-500" placeholder="Prompt Title">
+                        <textarea id="px-${p.id}" rows="3" class="w-full rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-sm outline-none focus:border-slate-blue-500 resize-y font-mono" placeholder="Prompt Text">${p.text}</textarea>
+                        <div class="flex gap-2 justify-end pt-2">
+                            <button onclick="cancelEditPrompt()" class="px-3 py-1.5 text-xs font-bold bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-md">Cancel</button>
+                            <button onclick="handleUpdatePrompt('${p.id}')" class="px-3 py-1.5 text-xs font-bold bg-gemini-green text-white rounded-md">Save</button>
+                        </div>
+                    </div>`;
+                } else {
+                    return `<div class="p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex justify-between items-start gap-4">
+                        <div class="flex-1 overflow-hidden">
+                            <h4 class="font-bold text-slate-900 dark:text-white text-sm mb-1">${p.title}</h4>
+                            <p class="text-slate-500 dark:text-slate-400 text-xs truncate font-mono">${p.text}</p>
+                        </div>
+                        <div class="flex gap-2 flex-shrink-0">
+                            <button onclick="startEditPrompt('${p.id}')" class="px-2.5 py-1.5 text-xs font-bold bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 rounded-md">Edit</button>
+                            <button onclick="handleDeletePrompt('${p.id}')" class="px-2.5 py-1.5 text-xs font-bold bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 rounded-md">Delete</button>
+                        </div>
+                    </div>`;
+                }
+            }).join('');
+        }
+        function handleAddPrompt() {
+            if (!state.promptSamples) state.promptSamples = [];
+            const newId = 'p-' + Date.now();
+            state.promptSamples.unshift({ id: newId, title: 'New Prompt', text: 'Prompt content...' });
+            editingPromptId = newId;
+            saveState(); renderAdminPrompts();
+        }
+        function startEditPrompt(id) { editingPromptId = id; renderAdminPrompts(); }
+        function cancelEditPrompt() { editingPromptId = null; renderAdminPrompts(); }
+        function handleUpdatePrompt(id) {
+            const p = state.promptSamples.find(x => x.id === id); if (!p) return;
+            p.title = document.getElementById(`pt-${id}`).value.trim();
+            p.text = document.getElementById(`px-${id}`).value.trim();
+            editingPromptId = null;
+            saveState(); renderAdminPrompts(); updateDashboard(); showToast('Prompt saved!');
+        }
+        function handleDeletePrompt(id) {
+            if (confirm('Delete this prompt sample?')) {
+                state.promptSamples = state.promptSamples.filter(x => x.id !== id);
+                saveState(); renderAdminPrompts(); updateDashboard(); showToast('Deleted!');
+            }
+        }
+
+        // ===== FEEDBACK =====
+        let currentFeedbackRating = 0, activeFeedbackFeatureId = null;
+        function openFeedbackModal(id = null) { activeFeedbackFeatureId = id; currentFeedbackRating = 0; updateStarVisuals(); document.getElementById('fbMessage').value = ''; document.getElementById('feedbackModal').showModal(); }
+        function closeFeedbackModal() { document.getElementById('feedbackModal').close(); }
+        document.getElementById('feedbackModal').addEventListener('click', (e) => { if (e.target === document.getElementById('feedbackModal')) closeFeedbackModal(); });
+        function setRating(r) { currentFeedbackRating = r; updateStarVisuals(); }
+        function updateStarVisuals() { document.querySelectorAll('.star-btn').forEach((s, i) => { if (i < currentFeedbackRating) { s.classList.replace('text-slate-300','text-amber-500'); s.classList.replace('dark:text-slate-600','dark:text-amber-400'); } else { s.classList.replace('text-amber-500','text-slate-300'); s.classList.replace('dark:text-amber-400','dark:text-slate-600'); } }); }
+        function submitFeedback(e) { e.preventDefault(); const b = document.getElementById('fb-submit-btn'); b.innerText = 'Sending...'; b.disabled = true; setTimeout(() => { showToast('Feedback submitted!'); closeFeedbackModal(); b.innerText = 'Submit'; b.disabled = false; }, 800); }
+
+        // ===== EXPORT / IMPORT =====
+        async function exportData() {
+            try {
+                const payload = { state: state, media: {} };
+                for (const f of state.features) { const imgs = await getMedia(f.id); if (imgs.length) payload.media[f.id] = imgs; }
+                const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `notebook-portal-backup-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('Data exported successfully!');
+            } catch(e) { showToast('Export failed', 'error'); }
+        }
+
+        function importData(event, isWelcome = false) {
+            const file = event.target.files[0]; if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const payload = JSON.parse(e.target.result);
+                    if (!payload.state || !payload.state.features) throw new Error('Invalid file');
+                    const msg = isWelcome ? 'Load this portal backup?' : 'This will replace all current data with the imported data. Continue?';
+                    if (confirm(msg)) {
+                        for (const f of state.features) await deleteMedia(f.id);
+                        state = {
+                            ...DEFAULT_STATE,
+                            ...payload.state,
+                            landingOverview: { ...DEFAULT_STATE.landingOverview, ...(payload.state.landingOverview || {}) },
+                            caseStudySections: payload.state.caseStudySections || DEFAULT_CASE_STUDIES,
+                            setupComplete: true
+                        };
+                        saveState();
+                        for (const f of state.features) { if (payload.media && payload.media[f.id]) await saveMedia(f.id, payload.media[f.id]); }
+                        handleRoute();
+                        showToast('Data imported successfully!');
+                    }
+                } catch(err) { console.error(err); showToast('Invalid backup file', 'error'); }
+            };
+            reader.readAsText(file); event.target.value = '';
+        }
+        // ===== SLACK CANVAS =====
+        function generateSlackCanvasText() {
+            const icons = ['🔍','🛡️','✅','🗺️','📊','🎧','🗄️','📋','⚡','🔧'];
+            const activeSections = (state.caseStudySections || []).filter(s => s.status === 'active').sort((a,b) => a.order - b.order);
+            const total = state.features.length;
+            const csCount = activeSections.length;
+            const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+            const recent = state.features.filter(f => (f.createdAt || parseInt(f.id)) > oneWeekAgo).length;
+
+            let text = `📓 ${state.portalTitle}\n`;
+            text += `────────────────────────────────────────\n\n`;
+
+            // Overview
+            const o = state.landingOverview;
+            text += `📋 ${o.title}\n`;
+            text += `${o.content}\n`;
+            if (o.supportContext) text += `\n${o.supportContext}\n`;
+            text += `\n────────────────────────────────────────\n\n`;
+
+            // Case Studies
+            text += `📊 Use Cases & Impact (${csCount} Active)\n\n`;
+            activeSections.forEach((s, idx) => {
+                const icon = icons[idx % icons.length];
+                text += `${icon} ${idx + 1}. ${s.title}\n`;
+                text += `   Challenge: ${s.challenge}\n`;
+                text += `   Solution: ${s.solution}\n`;
+                text += `   Impact: ${s.impact}\n`;
+                if (s.pros.length) text += `   ✅ Pros: ${s.pros.join(', ')}\n`;
+                if (s.cons.length) text += `   ⚠️ Limitations: ${s.cons.join(', ')}\n`;
+                text += `\n`;
+            });
+
+            text += `────────────────────────────────────────\n\n`;
+
+            // Stats
+            text += `📈 Portal Stats\n`;
+            text += `• ${total} Published Usecases\n`;
+            text += `• ${csCount} Active Case Studies\n`;
+            text += `• ${recent} Recently Updated (7 days)\n\n`;
+
+            text += `────────────────────────────────────────\n\n`;
+
+            // Summary
+            text += `💡 Summary\n`;
+            text += `${state.landingSummary}\n`;
+
+            return text;
+        }
+
+        function openSlackCanvas() {
+            const text = generateSlackCanvasText();
+            document.getElementById('slack-canvas-content').textContent = text;
+            document.getElementById('slackCanvasModal').showModal();
+        }
+
+        function closeSlackCanvas() {
+            document.getElementById('slackCanvasModal').close();
+        }
+
+        document.getElementById('slackCanvasModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('slackCanvasModal')) closeSlackCanvas();
+        });
+
+        async function copySlackCanvas() {
+            const text = document.getElementById('slack-canvas-content').textContent;
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('Copied to clipboard!');
+            } catch(e) {
+                // Fallback for older browsers
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+                showToast('Copied to clipboard!');
+            }
+        }
+
+        function downloadSlackCanvas() {
+            const text = document.getElementById('slack-canvas-content').textContent;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${state.portalTitle.replace(/[^a-zA-Z0-9]/g, '_')}_slack_canvas.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('Canvas downloaded!');
+        }
+    </script>
+</body>
+</html>

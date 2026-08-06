@@ -1,0 +1,7 @@
+name = "csgnotebook-api"
+compatibility_date = "2026-08-04"
+main = "api-worker.js"
+
+[vars]
+REPO_OWNER = "amitithub"
+REPO_NAME = "CSgnotebook"
